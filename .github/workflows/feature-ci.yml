@@ -58,4 +58,4 @@ jobs:
                    "color": 15158528
                  }]
                }' \
-               ${{ secrets.DISCORD_WEBHOOK }}
+               ${{ secrets.DISCORD_WEBHOOK_URL }}

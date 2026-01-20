@@ -150,4 +150,4 @@ jobs:
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{\"content\": \"$MSG\", \"embeds\": [{\"title\": \"${{ github.repository }}\", \"description\": \"Branch: ${{ github.ref_name }}\", \"color\": $COLOR}]}" \
-               ${{ secrets.DISCORD_WEBHOOK }} || true
+               ${{ secrets.DISCORD_WEBHOOK_URL }} || true
