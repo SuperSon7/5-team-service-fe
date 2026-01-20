@@ -61,18 +61,22 @@ jobs:
         env:
           NODE_ENV: production
 
+      - name: Prepare build artifact
+        if: github.event_name == 'push'
+        run: mv .next next-build
+
       - name: Upload Build Artifact
         if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: |
-            .next
+            next-build
             public
             package.json
             pnpm-lock.yaml
             next.config.ts
-          retention-days: 14
+          retention-days: 1
 
       - name: Notify Discord on failure
         if: failure()
@@ -117,6 +121,7 @@ jobs:
       - name: Package for Deployment
         run: |
           cd frontend-dist
+          mv next-build .next
           tar -czf ../frontend-build.tar.gz .
 
       - name: Transfer to Server
@@ -151,3 +156,4 @@ jobs:
                -X POST \
                -d "{\"content\": \"$MSG\", \"embeds\": [{\"title\": \"${{ github.repository }}\", \"description\": \"Branch: ${{ github.ref_name }}\", \"color\": $COLOR}]}" \
                ${{ secrets.DISCORD_WEBHOOK_URL }} || true
+
