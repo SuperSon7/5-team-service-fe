@@ -3,7 +3,11 @@ name: Frontend CI/CD
 on:
   push:
     branches:
-      - dev
+      - develop
+      - main
+  pull_request:
+    branches:
+      - develop
       - main
 
 concurrency:
@@ -11,32 +15,60 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  check-source-branch:
+    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate source branch
+        run: |
+          if [ "${{ github.head_ref }}" != "develop" ] && [[ "${{ github.head_ref }}" != hotfix/* ]]; then
+            echo "❌ Error: Only 'develop' or 'hotfix/*' branches can be merged into 'main'"
+            echo "Source branch: ${{ github.head_ref }}"
+            exit 1
+          fi
+          echo "✅ Source branch validation passed: ${{ github.head_ref }}"
+
   ci:
+    needs: [check-source-branch]
+    if: always() && (needs.check-source-branch.result == 'success' || needs.check-source-branch.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
+          cache: 'pnpm'
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
-      - name: Lint & TypeCheck
-        run: |
-          npm run lint
-          npm run typecheck
+      - name: Run ESLint
+        run: pnpm run lint
+
+      - name: Check Prettier formatting
+        run: pnpm run format:check
+
+      - name: TypeScript type check
+        run: pnpm run typecheck
+
+      - name: Run unit tests
+        run: pnpm run test
 
       - name: Build Next.js app
-        run: npm run build
+        run: pnpm run build
         env:
           NODE_ENV: production
 
       - name: Upload Build Artifact
+        if: github.event_name == 'push'
         uses: actions/upload-artifact@v4
         with:
           name: frontend-build
@@ -44,12 +76,28 @@ jobs:
             .next
             public
             package.json
-            package-lock.json
+            pnpm-lock.yaml
             next.config.js
           retention-days: 1
 
+      - name: Notify Discord on failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{
+                 "content": "❌ **Frontend CI Failed!**",
+                 "embeds": [{
+                   "title": "Build Details",
+                   "description": "Repo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                   "color": 15158528
+                 }]
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK }} || true
+
   deploy:
     needs: ci
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Set environment
@@ -60,7 +108,7 @@ jobs:
             echo "env_name=prod" >> $GITHUB_OUTPUT
           else
             echo "host=DEV_EC2_HOST" >> $GITHUB_OUTPUT
-            echo "env_name=dev" >> $GITHUB_OUTPUT
+            echo "env_name=develop" >> $GITHUB_OUTPUT
           fi
 
       - name: Download Build Artifact

@@ -1,0 +1,67 @@
+name: Frontend Feature CI
+
+on:
+  push:
+    branches:
+      - 'feature/**'
+      - 'develop'
+
+concurrency:
+  group: frontend-feature-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quick-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Quality Gate only
+      - name: Run ESLint
+        run: pnpm run lint
+
+      - name: Check Prettier formatting
+        run: pnpm run format:check
+
+      - name: TypeScript type check
+        run: pnpm run typecheck
+
+      - name: Run unit tests
+        run: pnpm run test
+
+      - name: Build Next.js app
+        run: pnpm run build
+        env:
+          NODE_ENV: production
+
+      # Notification
+      - name: Notify Discord on failure
+        if: failure()
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d '{
+                 "content": "❌ **Frontend Feature CI Failed!**",
+                 "embeds": [{
+                   "title": "Build Details",
+                   "description": "Repo: ${{ github.repository }}\nBranch: ${{ github.ref_name }}\nCheck: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}",
+                   "color": 15158528
+                 }]
+               }' \
+               ${{ secrets.DISCORD_WEBHOOK }}
