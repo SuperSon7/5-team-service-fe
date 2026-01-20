@@ -156,4 +156,3 @@ jobs:
                -X POST \
                -d "{\"content\": \"$MSG\", \"embeds\": [{\"title\": \"${{ github.repository }}\", \"description\": \"Branch: ${{ github.ref_name }}\", \"color\": $COLOR}]}" \
                ${{ secrets.DISCORD_WEBHOOK_URL }} || true
-
