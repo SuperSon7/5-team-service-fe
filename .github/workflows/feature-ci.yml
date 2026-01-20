@@ -30,7 +30,7 @@ jobs:
           cache: "pnpm"
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --prefer-offline
 
       # Quality Gate only
       - name: Run ESLint
@@ -39,10 +39,7 @@ jobs:
       - name: Check Prettier formatting
         run: pnpm run format:check
 
-      - name: TypeScript type check
-        run: pnpm run typecheck
-
-      - name: Build Next.js app
+      - name: Build Next.js app (includes type check)
         run: pnpm run build
         env:
           NODE_ENV: production
