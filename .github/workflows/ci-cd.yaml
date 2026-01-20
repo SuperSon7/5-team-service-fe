@@ -57,7 +57,7 @@ jobs:
         run: pnpm run format:check
 
       - name: TypeScript type check
-        run: pnpm run typecheck
+        run: pnpm run type-check
 
       - name: Run unit tests
         run: pnpm run test
