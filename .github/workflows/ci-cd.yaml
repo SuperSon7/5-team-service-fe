@@ -1,0 +1,108 @@
+name: Frontend CI/CD
+
+on:
+  push:
+    branches:
+      - dev
+      - main
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint & TypeCheck
+        run: |
+          npm run lint
+          npm run typecheck
+
+      - name: Build Next.js app
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: |
+            .next
+            public
+            package.json
+            package-lock.json
+            next.config.js
+          retention-days: 1
+
+  deploy:
+    needs: ci
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set environment
+        id: env
+        run: |
+          if [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "host=EC2_HOST" >> $GITHUB_OUTPUT
+            echo "env_name=prod" >> $GITHUB_OUTPUT
+          else
+            echo "host=DEV_EC2_HOST" >> $GITHUB_OUTPUT
+            echo "env_name=dev" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Download Build Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend-dist
+
+      - name: Package for Deployment
+        run: |
+          cd frontend-dist
+          tar -czf ../frontend-build.tar.gz .
+
+      - name: Transfer to Server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ steps.env.outputs.host == 'EC2_HOST' && secrets.EC2_HOST || secrets.DEV_EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "frontend-build.tar.gz"
+          target: "/home/ubuntu/app/artifacts/fe"
+          overwrite: true
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ steps.env.outputs.host == 'EC2_HOST' && secrets.EC2_HOST || secrets.DEV_EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: bash /home/ubuntu/app/deploy.sh fe
+
+      - name: Notify Discord
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            COLOR=3066993
+            MSG="✅ **Frontend ${{ steps.env.outputs.env_name }} 배포 성공!**"
+          else
+            COLOR=15158528
+            MSG="❌ **Frontend ${{ steps.env.outputs.env_name }} 배포 실패!**"
+          fi
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"content\": \"$MSG\", \"embeds\": [{\"title\": \"${{ github.repository }}\", \"description\": \"Branch: ${{ github.ref_name }}\", \"color\": $COLOR}]}" \
+               ${{ secrets.DISCORD_WEBHOOK }} || true
