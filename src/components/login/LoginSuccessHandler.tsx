@@ -25,7 +25,6 @@ export default function LoginSuccessHandler() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-
     let isMounted = true;
 
     const run = async () => {
