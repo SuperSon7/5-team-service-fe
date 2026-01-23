@@ -1,7 +1,7 @@
 "use client";
 
 export default function KakaoLoginButton() {
-  const base = process.env.NEXT_PUBLIC_API_BASE_URL ?? "https://dev.doktori.kr/api";
+  const base = process.env.NEXT_PUBLIC_API_BASE_URL;
   const loginUrl = `${base}/oauth/kakao`;
 
   return (
