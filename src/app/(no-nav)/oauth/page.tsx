@@ -3,18 +3,30 @@ import KakaoLoginButton from "@/components/login/KakaoLoginButton";
 export default function Page() {
   return (
     <div className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6 text-center">
-      <div className="pointer-events-none absolute -left-28 -top-32 h-[520px] w-[520px] rounded-full bg-[radial-gradient(circle_at_35%_35%,#F2FBE8_0%,#E6F7D2_40%,rgba(198,239,148,0.25)_70%,rgba(198,239,148,0)_100%)] blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-32 -right-24 h-[260px] w-[260px] rounded-full bg-[radial-gradient(circle_at_40%_40%,#F2FBE8_0%,#E6F7D2_40%,rgba(198,239,148,0.2)_70%,rgba(198,239,148,0)_100%)] blur-3xl" />
       <div className="relative z-10 max-w-xs">
-        <h1 className="mt-4 text-title-2  text-gray-900">독토리</h1>
-        <p className="mt-4 text-subheading !font-[400] text-gray-900">
-          시간·거리 상관없이
+        <div className="flex flex-col items-center">
+          <div className="flex flex-row items-center justify-center gap-5">
+            <h1 className="mt-4 text-title-1 !text-[40px] text-gray-900">책으로</h1>
+            <img src="/book.png" alt="book" className="mx-auto w-18" />
+          </div>
+          <div className="flex flex-row items-center justify-center gap-5">
+            <img src="/chat.png" alt="chat" className="mx-auto mt-6 w-20" />
+            <h1 className="mt-4 text-title-1 !text-[40px] text-gray-900">모이는</h1>
+          </div>
+          <div className="flex flex-row items-center justify-center gap-5">
+            <h1 className="mt-4 text-title-1 !text-[40px]  text-gray-900">마을</h1>
+            <img src="/home.png" alt="home" className="mx-auto mt-6 w-24" />
+          </div>
+        </div>
+
+        <p className="mt-15 text-subheading !text-[18px] !font-[400] text-gray-900">
+          <span className="!font-[600]">독토리</span>에서 시간과 거리 상관없이
           <br />
-          오늘의 책 이야기를 시작해요
+          오늘의 책 이야기를 시작해요!
         </p>
       </div>
 
-      <div className="relative z-10 mt-10 w-full max-w-sm">
+      <div className="relative z-10 mt-30 w-full max-w-sm">
         <KakaoLoginButton />
       </div>
     </div>

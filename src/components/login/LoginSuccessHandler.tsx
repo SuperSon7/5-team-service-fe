@@ -6,12 +6,13 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { apiFetch } from "@/lib/api/apiFetch";
 import { useAuthStore } from "@/stores/authStore";
+import { Spinner } from "@/components/ui/spinner";
 
 type TokenData = { accessToken: string };
 
 type ProfileData = {
   nickname: string;
-  profileImagePath?: string;
+  profileImagePath: string | null;
   profileCompleted: boolean;
   onboardingCompleted: boolean;
   leaderIntro: string | null;
@@ -48,7 +49,7 @@ export default function LoginSuccessHandler() {
         const shouldOnboard = profile?.onboardingCompleted === false;
 
         if (isMounted) {
-          router.replace(shouldOnboard ? "/onboarding" : "");
+          router.replace(shouldOnboard ? "/onboarding" : "/");
         }
       } catch (error) {
         console.log(error);
@@ -66,10 +67,12 @@ export default function LoginSuccessHandler() {
   }, [queryClient, router, setAccessToken]);
 
   return (
-    <div className="flex flex-1 items-center justify-center text-center">
-      <p className="text-base font-medium text-gray-700">
-        {errorMessage ?? "로그인 처리 중입니다..."}
-      </p>
+    <div className="flex min-h-dvh items-center justify-center text-center">
+      {errorMessage ? (
+        <p className="text-base font-medium text-gray-700">{errorMessage}</p>
+      ) : (
+        <Spinner className="size-15 text-gray-700" />
+      )}
     </div>
   );
 }
