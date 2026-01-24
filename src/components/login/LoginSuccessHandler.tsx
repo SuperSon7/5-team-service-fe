@@ -46,10 +46,15 @@ export default function LoginSuccessHandler() {
           queryClient.setQueryData(["profile"], profile);
         }
 
-        const shouldOnboard = profile?.onboardingCompleted === false;
+        const isProfileCompleted = profile?.profileCompleted;
+        const isOnboardingCompleted = profile?.onboardingCompleted;
 
         if (isMounted) {
-          router.replace(shouldOnboard ? "/onboarding" : "/");
+          if (!isProfileCompleted) {
+            router.replace("/onboarding/required");
+          } else {
+            router.replace(isOnboardingCompleted ? "/" : "/onboarding");
+          }
         }
       } catch (error) {
         console.log(error);
