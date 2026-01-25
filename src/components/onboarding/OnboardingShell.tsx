@@ -57,6 +57,8 @@ export default function OnboardingShell({ children }: { children: React.ReactNod
     return parsed;
   }, [params]);
 
+  const showNextSkipButton = !pathname?.startsWith("/onboarding/required");
+
   const showStepUi =
     pathname?.startsWith("/onboarding/") &&
     currentStep !== null &&
@@ -152,16 +154,18 @@ export default function OnboardingShell({ children }: { children: React.ReactNod
 
         <div className={showStepUi ? "mt-8 flex-1" : "flex flex-1 h-full w-full"}>{children}</div>
 
-        <div className="pb-4 mt-auto">
-          <NextStepButton
-            currentStep={currentStep}
-            isSelected={isSelected}
-            isLastStep={isLastStep}
-            onNext={onNext}
-            onSkip={onSkip}
-            showSkip={true}
-          />
-        </div>
+        {showNextSkipButton ? (
+          <div className="pb-4 mt-auto">
+            <NextStepButton
+              currentStep={currentStep}
+              isSelected={isSelected}
+              isLastStep={isLastStep}
+              onNext={onNext}
+              onSkip={onSkip}
+              showSkip={true}
+            />
+          </div>
+        ) : null}
       </div>
     </FormProvider>
   );

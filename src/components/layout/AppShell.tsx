@@ -1,18 +1,8 @@
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh">
-      <main className="min-h-dvh lg:flex lg:justify-center">
-        <div
-          className="
-            w-full min-h-dvh bg-white
-            lg:min-h-0 lg:w-[600px] lg:h-dvh
-            lg:shadow-xl lg:overflow-hidden
-          "
-        >
-          <div className="min-h-dvh lg:h-full lg:overflow-y-auto lg:scrollbar-none lg:text-[18px] pb-[env(safe-area-inset-bottom)]">
-            {children}
-          </div>
-        </div>
+    <div className="min-h-dvh bg-gray-100">
+      <main className="mx-auto min-h-dvh w-full max-w-[500px] bg-white shadow-lg">
+        <div className="min-h-dvh pb-[env(safe-area-inset-bottom)]">{children}</div>
       </main>
     </div>
   );
