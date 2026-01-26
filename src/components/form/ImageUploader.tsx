@@ -14,12 +14,13 @@ type ImageUploaderProps = {
   fallbackText?: string;
 };
 
-export default function ImageUploader({ label = "프로필 이미지", helperText }: ImageUploaderProps) {
-  const { setValue, watch } = useFormContext();
+export default function ImageUploader({ urlName, fileName, label = "프로필 이미지" }: ImageUploaderProps) {
+  const { setValue, watch, formState: { errors } } = useFormContext();
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  const profileImagePath = (watch("profileImagePath") as string | undefined) ?? "";
-  const profileImageFile = (watch("profileImageFile") as File | null | undefined) ?? null;
+  const profileImagePath = (watch(urlName) as string | undefined) ?? "";
+  const profileImageFile = (watch(fileName) as File | null | undefined) ?? null;
+  const errorMessage = (errors?.[fileName]?.message ?? "") as string;
 
   const objectUrl = useMemo(() => {
     if (!profileImageFile) return null;
@@ -49,7 +50,7 @@ export default function ImageUploader({ label = "프로필 이미지", helperTex
   };
 
   return (
-    <div className="flex flex-col items-center gap-3">
+    <div className="flex flex-col items-center gap-5">
       <Avatar className="relative size-30 overflow-visible">
         <div className="h-full w-full overflow-hidden rounded-full bg-gray-200 text-gray-500">
           <AvatarImage src={previewUrl ?? ""} alt={label} className="h-full w-full object-cover" />
@@ -65,7 +66,7 @@ export default function ImageUploader({ label = "프로필 이미지", helperTex
         </button>
       </Avatar>
       <div className="flex flex-col items-center gap-1">
-        {helperText ? <span className="text-xs text-gray-400">{helperText}</span> : null}
+        {errorMessage ? <span className="text-xs text-red-500">{errorMessage}</span> : null}
       </div>
       <input
         ref={inputRef}
