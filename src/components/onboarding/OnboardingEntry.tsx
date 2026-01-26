@@ -8,7 +8,7 @@ export default function OnboardingEntry() {
   const { data } = useQuery({
     queryKey: ["profile"],
     queryFn: async () => {
-      const profile = await apiFetch<ProfileData>("/users/me");
+      const profile = await apiFetch<ProfileData>("/users/me", {});
       return profile;
     },
   });

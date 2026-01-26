@@ -41,7 +41,7 @@ export default function LoginSuccessHandler() {
 
         setAccessToken(accessToken);
 
-        const profile = await apiFetch<ProfileData>("/users/me");
+        const profile = await apiFetch<ProfileData>("/users/me", {});
         if (profile) {
           queryClient.setQueryData(["profile"], profile);
         }
