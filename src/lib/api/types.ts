@@ -4,7 +4,13 @@ export type ApiResponse<T> = {
   data: T;
 };
 
-export type ApiError = {
+export type ApiErrorResponse = {
   code: string;
   message: string;
+};
+
+export type ApiFetchOptions = RequestInit & {
+  timeoutMs?: number;
+  retried?: boolean;
+  skipRefresh?: boolean;
 };

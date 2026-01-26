@@ -22,7 +22,7 @@ export default function Question({ step }: { step: number }) {
     queryFn: async () => {
       if (!info) return [];
 
-      const response = await apiFetch<PolicyOption[]>(info.endpoint);
+      const response = await apiFetch<PolicyOption[]>(info.endpoint, {});
 
       return response ?? [];
     },
