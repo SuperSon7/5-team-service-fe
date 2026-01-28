@@ -1,4 +1,6 @@
 import MainHeader from "@/components/layout/MainHeader";
+import MeetingList from "@/components/meeting/MeetingList";
+import RecommendedMeetings from "@/components/meeting/RecommendedMeetings";
 
 export default function Page() {
   return (
@@ -7,8 +9,8 @@ export default function Page() {
         <MainHeader hasUnread />
       </div>
       <div className="flex-1">
-        {/* <RecommendedMeetings />
-        <MeetingList /> */}
+        <RecommendedMeetings />
+        <MeetingList />
       </div>
     </div>
   );

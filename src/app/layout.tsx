@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "@/app/providers";
 import AppShell from "@/components/layout/AppShell";
 import localFont from "next/font/local";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 export const metadata: Metadata = {
   title: "독토리 - 독서토론마을",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${myFont.className} min-h-dvh bg-gray-100 lg:overflow-hidden`}>
         <Providers>
           <AppShell>{children}</AppShell>
+          <ReactQueryDevtools initialIsOpen={false} />
         </Providers>
       </body>
     </html>
