@@ -5,9 +5,11 @@ import Image from "next/image";
 export function MeetingItem({
   meeting,
   genreName,
+  onClick,
 }: {
   meeting: MeetingItemData;
   genreName?: string;
+  onClick?: () => void;
 }) {
   const {
     meetingId,
@@ -19,18 +21,17 @@ export function MeetingItem({
     remainingDays,
   } = meeting;
 
-  const tempImagePath = "/profile_img_ham.JPG";
-
   return (
     <Link
       href={`/meeting/detail/${meetingId}`}
       className="block rounded-3xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md"
       aria-label={`${title} 모임 상세 보기`}
+      onClick={onClick}
     >
       <div className="relative">
         <div className="relative h-32 w-full overflow-hidden rounded-2xl bg-gray-200">
           <Image
-            src={tempImagePath}
+            src={meetingImagePath}
             fill
             sizes="100vw"
             alt="모임 이미지"

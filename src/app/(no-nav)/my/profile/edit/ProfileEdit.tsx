@@ -30,7 +30,7 @@ const profileSchema = z.object({
       message: "프로필 이미지는 JPG/JPEG 또는 PNG 파일만 업로드할 수 있습니다.",
     })
     .refine((file) => !file || file.size <= MAX_FILE_SIZE, {
-      message: "프로필 이미지는 최대 10MB까지 업로드할 수 있습니다.",
+      message: "프로필 이미지는 최대 5MB까지 업로드할 수 있습니다.",
     }),
 });
 

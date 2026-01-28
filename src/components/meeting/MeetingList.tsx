@@ -25,7 +25,6 @@ export default function MeetingList() {
     staleTime: 1000 * 60 * 60,
   });
 
-  const listRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
 
   const {
@@ -45,7 +44,7 @@ export default function MeetingList() {
     queryKey: ["meetings"],
     queryFn: async ({ pageParam }) => {
       const cursorParam = pageParam ? `&cursorId=${pageParam}` : "";
-      const url = `/meetings?size=10${cursorParam}`;
+      const url = `/meetings?size=6${cursorParam}`;
       return await apiFetch<MeetingListResponse>(url, {});
     },
     initialPageParam: undefined,
@@ -53,37 +52,44 @@ export default function MeetingList() {
       lastPage.pageInfo.hasNext ? lastPage.pageInfo.nextCursorId : undefined,
   });
 
-  const meetings = useMemo(
-    () =>
+  const meetings = useMemo(() => {
+    const flattened =
       meetingPages?.pages.flatMap((page: MeetingListResponse) =>
         page.items.map((item) => ({
           ...item,
           readingGenreId: Number(item.readingGenreId),
         })),
-      ) ?? [],
-    [meetingPages?.pages],
-  );
+      ) ?? [];
+
+    const unique = new Map<number, MeetingItemData>();
+    for (const item of flattened) {
+      if (!unique.has(item.meetingId)) {
+        unique.set(item.meetingId, item);
+      }
+    }
+
+    return Array.from(unique.values());
+  }, [meetingPages?.pages]);
 
   const genreMap = useMemo(() => new Map(genres?.map((genre) => [genre.id, genre.name])), [genres]);
 
   useEffect(() => {
-    const root = listRef.current;
     const target = sentinelRef.current;
-    if (!root || !target) return;
+    if (!target) return;
     if (!hasNextPage) return;
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0]?.isIntersecting) {
+        if (entries[0]?.isIntersecting && !isFetchingNextPage) {
           fetchNextPage();
         }
       },
-      { root, rootMargin: "120px", threshold: 0 },
+      { root: null, rootMargin: "200px", threshold: 0 },
     );
 
     observer.observe(target);
     return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage]);
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return (
     <div className="px-6 my-10">
@@ -91,7 +97,7 @@ export default function MeetingList() {
         <p className="text-subheading">전체 모임</p>
         <p className="text-label !font-[400] text-gray-400">취향에 맞는 모임을 탐색해보세요!</p>
       </div>
-      <div ref={listRef} className="mt-5 flex min-h-0 flex-1 flex-col overflow-y-auto">
+      <div className="mt-5 flex min-h-0 flex-1 flex-col">
         {isLoading ? (
           <div className="py-10 text-center text-sm text-gray-400">불러오는 중...</div>
         ) : null}

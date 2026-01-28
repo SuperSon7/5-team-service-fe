@@ -236,6 +236,9 @@ body {
   .animate-toast-slide {
     animation: toast-slide 2.2s ease-in-out forwards;
   }
+  .animate-shake-x {
+    animation: shake-x 0.35s ease-in-out;
+  }
 }
 
 @keyframes toast-slide {
@@ -254,5 +257,24 @@ body {
   100% {
     opacity: 0;
     transform: translateX(24px);
+  }
+}
+
+@keyframes shake-x {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-2px);
+  }
+  40% {
+    transform: translateX(2px);
+  }
+  60% {
+    transform: translateX(-1px);
+  }
+  80% {
+    transform: translateX(1px);
   }
 }
