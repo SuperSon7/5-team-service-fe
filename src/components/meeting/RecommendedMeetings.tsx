@@ -1,5 +1,7 @@
 "use client";
 
+import RecommendedMeetingCarousel from "@/components/meeting/RecommendedMeetingCarousel";
+
 export default function RecommendedMeetings() {
   return (
     <div>
@@ -10,7 +12,7 @@ export default function RecommendedMeetings() {
         </p>
       </div>
       <div className="my-5">
-        <div className="w-full h-45 bg-gray-300 "></div>
+        <RecommendedMeetingCarousel />
       </div>
     </div>
   );
