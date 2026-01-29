@@ -198,8 +198,8 @@ export default function MeetingDetail() {
             </div>
 
             <div className="rounded-2xl border border-gray-200 p-4">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 overflow-hidden rounded-full bg-gray-100">
+              <div className="flex items-start gap-3">
+                <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-gray-100">
                   {meeting.leader.profileImagePath ? (
                     <img
                       src={meeting.leader.profileImagePath}
@@ -208,11 +208,11 @@ export default function MeetingDetail() {
                     />
                   ) : null}
                 </div>
-                <div>
+                <div className="min-w-0 flex-1">
                   <p className="text-sm font-semibold text-gray-900">
                     모임장 {meeting.leader.nickname}
                   </p>
-                  <p className="text-xs text-gray-500">{meeting.leader.intro}</p>
+                  <p className="text-xs text-gray-500 break-words">{meeting.leader.intro}</p>
                 </div>
               </div>
             </div>
