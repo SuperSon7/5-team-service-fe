@@ -3,6 +3,7 @@
 import { ProfileData } from "@/components/onboarding/types";
 import { apiFetch } from "@/lib/api/apiFetch";
 import { useQuery } from "@tanstack/react-query";
+import Image from "next/image";
 
 export default function OnboardingEntry() {
   const { data } = useQuery({
@@ -26,8 +27,8 @@ export default function OnboardingEntry() {
         </p>
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-6 text-body-1 text-gray-700">
-        <div className="space-y-2 mt-15">
+      <div className="flex min-h-0 flex-1 flex-col items-center gap-6 text-body-1 text-gray-700">
+        <div className="mt-12 space-y-2">
           <p>
             더 나은 독토리 경험을 위해
             <br />
@@ -36,14 +37,19 @@ export default function OnboardingEntry() {
           <p>
             응답해주신 내용은 AI 분석에 활용되어
             <br />
-            만두님과 딱 맞는 모임을 추천해드려요.
+            {nickname}님과 딱 맞는 모임을 추천해드려요.
           </p>
         </div>
-        <img
-          src="/chracter.png"
-          alt="독토리 캐릭터"
-          className="h-60 w-60 max-h-[30vh] object-contain mt-18"
-        />
+        <div className="mt-12 w-full max-w-[280px]">
+          <Image
+            src="/chracter.png"
+            alt="독토리 캐릭터"
+            width={560}
+            height={560}
+            className="h-auto w-full object-contain"
+            priority
+          />
+        </div>
       </div>
     </div>
   );

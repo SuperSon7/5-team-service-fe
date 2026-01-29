@@ -23,6 +23,16 @@ export default function BottomNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab");
+  const isPathActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    if (href.startsWith("/coming-soon")) {
+      return pathname === "/coming-soon" && href.includes(`tab=${tab ?? ""}`);
+    }
+    if (href === "/my") {
+      return pathname === "/my" || pathname.startsWith("/my/");
+    }
+    return pathname?.startsWith(href);
+  };
 
   return (
     <nav className="relative h-16 border-t border-gray-200 bg-white">
@@ -37,12 +47,7 @@ export default function BottomNav() {
       ) : null}
       <div className="grid h-full grid-cols-5">
         {navItems.map((item) => {
-          const isActive =
-            item.href === "/"
-              ? pathname === "/"
-              : item.href.startsWith("/coming-soon")
-                ? pathname === "/coming-soon" && item.href.includes(`tab=${tab ?? ""}`)
-                : pathname?.startsWith(item.href);
+          const isActive = isPathActive(item.href);
 
           return (
             <Link
