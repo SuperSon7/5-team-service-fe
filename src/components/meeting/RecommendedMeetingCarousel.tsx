@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import formatKoreanDate from "@/lib/formatKoreanDate";
 import { apiFetch } from "@/lib/api/apiFetch";
 import { useAuthStore } from "@/stores/authStore";
@@ -37,15 +38,7 @@ export default function RecommendedMeetingCarousel() {
   }, [items, total]);
   const [activeIndex, setActiveIndex] = useState(1);
   const [isAnimating, setIsAnimating] = useState(true);
-
-  useEffect(() => {
-    if (total <= 1) return;
-    const timer = window.setInterval(() => {
-      setActiveIndex((prev) => prev + 1);
-      setIsAnimating(true);
-    }, 4000);
-    return () => window.clearInterval(timer);
-  }, [total]);
+  const [hoverSide, setHoverSide] = useState<"left" | "right" | null>(null);
 
   useEffect(() => {
     if (!isAnimating) return;
@@ -66,9 +59,28 @@ export default function RecommendedMeetingCarousel() {
   }, [activeIndex, isAnimating, total]);
 
   const indicatorIndex = total ? (activeIndex - 1 + total) % total : 0;
+  const canNavigate = total > 1;
+  const goNext = useCallback(() => {
+    if (!canNavigate) return;
+    setActiveIndex((prev) => (prev >= total ? total + 1 : prev + 1));
+    setIsAnimating(true);
+  }, [canNavigate, total]);
+  const goPrev = useCallback(() => {
+    if (!canNavigate) return;
+    setActiveIndex((prev) => (prev <= 1 ? 0 : prev - 1));
+    setIsAnimating(true);
+  }, [canNavigate, total]);
+
+  useEffect(() => {
+    if (total <= 1) return;
+    const timer = window.setInterval(() => {
+      goNext();
+    }, 4000);
+    return () => window.clearInterval(timer);
+  }, [goNext, total]);
 
   return (
-    <div className="relative">
+    <div className="group relative">
       <div className="overflow-hidden">
         <div
           className="flex"
@@ -114,6 +126,42 @@ export default function RecommendedMeetingCarousel() {
           })}
         </div>
       </div>
+      {canNavigate ? (
+        <>
+          <div
+            className="absolute inset-y-0 left-0 w-[30%] flex items-center"
+            onMouseEnter={() => setHoverSide("left")}
+            onMouseLeave={() => setHoverSide(null)}
+          >
+            {hoverSide === "left" ? (
+              <button
+                type="button"
+                aria-label="이전 추천 모임"
+                onClick={goPrev}
+                className="ml-2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-gray-700 shadow-md transition hover:bg-white"
+              >
+                <ChevronLeftIcon className="h-5 w-5" />
+              </button>
+            ) : null}
+          </div>
+          <div
+            className="absolute inset-y-0 right-0 w-[30%] flex items-center justify-end"
+            onMouseEnter={() => setHoverSide("right")}
+            onMouseLeave={() => setHoverSide(null)}
+          >
+            {hoverSide === "right" ? (
+              <button
+                type="button"
+                aria-label="다음 추천 모임"
+                onClick={goNext}
+                className="mr-2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-white/80 text-gray-700 shadow-md transition hover:bg-white"
+              >
+                <ChevronRightIcon className="h-5 w-5" />
+              </button>
+            ) : null}
+          </div>
+        </>
+      ) : null}
       {isLoading ? (
         <div className="py-6 text-center text-sm text-gray-400">추천 모임을 불러오는 중...</div>
       ) : null}
