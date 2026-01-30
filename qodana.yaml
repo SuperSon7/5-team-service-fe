@@ -1,0 +1,35 @@
+version: "1.0"
+
+# Qodana 설정: 코드 품질 및 Next.js/React 분석에 집중
+# 보안 취약점 분석은 CodeQL에서 담당
+
+linter: jetbrains/qodana-js:2024.3
+
+# 의존성 설치 (ESLint 등 필요)
+bootstrap: |
+  npm install -g pnpm
+  pnpm install --frozen-lockfile
+
+profile:
+  name: qodana.recommended
+
+# 코드 품질에 집중하는 검사 그룹
+include:
+  - name: JavaScript and TypeScript/Code style issues
+  - name: JavaScript and TypeScript/Probable bugs
+  - name: JavaScript and TypeScript/Code quality tools
+  - name: JavaScript and TypeScript/General
+  - name: JavaScript and TypeScript/Unused symbols
+  - name: JavaScript and TypeScript/Validity issues
+  - name: JavaScript and TypeScript/ES2015 migration aids
+  - name: JavaScript and TypeScript/TypeScript
+  - name: React
+  - name: Next.js
+
+# 보안 관련 검사는 CodeQL에서 처리하므로 제외
+exclude:
+  - name: Security
+  - name: JavaScript and TypeScript/Security
+
+# 실패 임계값 설정
+failThreshold: 100
