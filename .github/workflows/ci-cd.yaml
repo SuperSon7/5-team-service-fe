@@ -118,7 +118,7 @@ jobs:
                ${{ secrets.DISCORD_WEBHOOK_URL }} || true
 
   deploy:
-    needs: ci
+#    needs: ci
     if: |
       always() &&
       needs.ci.result == 'success' &&
