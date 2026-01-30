@@ -67,7 +67,7 @@ jobs:
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID_PROD || secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID_DEV }}
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_PROD || secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_DEV }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_PROD || secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_DEV }}
-          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_FIREBASE_APP_ID_PROD || secrets.NEXT_PUBLIC_FIREBASE_APP_ID_DEV }}
+          NEXT_PUBLIC_FIREBASE_APPID: ${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_FIREBASE_APPID_PROD || secrets.NEXT_PUBLIC_FIREBASE_APPID_DEV }}
           NEXT_PUBLIC_FIREBASE_VAPID_KEY: ${{ github.ref == 'refs/heads/main' && secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY_PROD || secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY_DEV }}
 
       - name: Prepare build artifact
