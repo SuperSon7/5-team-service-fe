@@ -9,7 +9,31 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import RequiredInfo from "./RequiredInfo";
 
 const requiredInfoSchema = z.object({
-  birthYear: z.string().regex(/^\d{4}$/, "출생년도는 4자리 숫자여야 합니다."),
+  birthYear: z
+    .string()
+    .trim()
+    .superRefine((value, ctx) => {
+      if (!value) {
+        ctx.addIssue({ code: "custom", message: "출생년도를 입력해주세요." });
+        return;
+      }
+      if (!/^\d+$/.test(value)) {
+        ctx.addIssue({ code: "custom", message: "숫자만 입력해주세요." });
+        return;
+      }
+      if (value.length !== 4) {
+        ctx.addIssue({ code: "custom", message: "출생년도는 4자리 숫자여야 합니다." });
+        return;
+      }
+      const parsed = Number(value);
+      if (parsed < 1900) {
+        ctx.addIssue({ code: "custom", message: "1900보다 작은 값은 입력할 수 없습니다." });
+        return;
+      }
+      if (parsed > 2100) {
+        ctx.addIssue({ code: "custom", message: "2100보다 큰 값은 입력할 수 없습니다." });
+      }
+    }),
   gender: z.enum(["MALE", "FEMALE"]),
   notificationAgreement: z.boolean(),
 });
@@ -30,7 +54,7 @@ export default function RequiredInfoShell() {
     resolver: zodResolver(requiredInfoSchema),
     mode: "onChange",
     defaultValues: {
-      birthYear: "1000",
+      birthYear: "",
       gender: "MALE",
       notificationAgreement: true,
     },

@@ -115,6 +115,7 @@ export default function MeetingSearch() {
   const [hasApplied, setHasApplied] = useState(initialHasApplied);
   const [keyword, setKeyword] = useState(initialKeyword);
   const [submittedKeyword, setSubmittedKeyword] = useState(initialSubmittedKeyword);
+  const [keywordError, setKeywordError] = useState<string | null>(null);
 
   const { data: genres } = useQuery<PolicyOption[]>({
     queryKey: ["policy", "/policies/reading-genres"],
@@ -224,6 +225,11 @@ export default function MeetingSearch() {
           onSubmit={(event) => {
             event.preventDefault();
             const nextKeyword = keyword.trim();
+            if (!nextKeyword && !hasActiveFilters) {
+              setKeywordError("검색어를 입력해주세요");
+              return;
+            }
+            setKeywordError(null);
             setSubmittedKeyword(nextKeyword);
             setHasApplied(true);
             sessionStorage.setItem(
@@ -241,7 +247,12 @@ export default function MeetingSearch() {
             <MagnifyingGlassIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
             <input
               value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
+              onChange={(e) => {
+                setKeyword(e.target.value);
+                if (keywordError) {
+                  setKeywordError(null);
+                }
+              }}
               className="w-full bg-transparent text-sm text-gray-900 placeholder:text-gray-400 outline-none"
               placeholder="모임명/키워드로 검색하기"
             />
@@ -266,7 +277,9 @@ export default function MeetingSearch() {
           }}
         />
         <div ref={listRef} className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          {!hasApplied ? (
+          {keywordError ? (
+            <div className="py-10 text-center text-sm text-gray-400">{keywordError}</div>
+          ) : !hasApplied ? (
             <div className="py-10 text-center text-sm text-gray-400">
               일정 또는 주제를 선택해 검색해보세요.
             </div>

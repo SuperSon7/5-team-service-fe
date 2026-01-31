@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const CONTROL_CHARS = /[\u0000-\u001F\u007F]/;
-const ALLOWED_CHARS = /^[가-힣A-Za-z0-9 ?!,.\(\)\[\]&+\-]+$/;
+const ALLOWED_CHARS = /^[가-힣ㄱ-ㅎㅏ-ㅣA-Za-z0-9 ?!,.\(\)\[\]&+\-]+$/;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; //5MB
 const ALLOWED_MIME_TYPES = ["image/jpeg", "image/png"];
 
