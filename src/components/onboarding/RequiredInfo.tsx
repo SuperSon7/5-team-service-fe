@@ -14,11 +14,12 @@ const consentOptions = [
 ] as const;
 
 export default function RequiredInfo({ onSubmit }: { onSubmit: () => void }) {
-  const { register, setValue, watch } = useFormContext<OnboardingFormValues>();
+  const { register, setValue, watch, formState } = useFormContext<OnboardingFormValues>();
   const gender = watch("gender");
   const notificationAgreement = watch("notificationAgreement");
   const birthYear = watch("birthYear");
   const isComplete = Boolean(birthYear) && Boolean(gender) && notificationAgreement !== undefined;
+  const birthYearError = formState.errors.birthYear?.message;
 
   return (
     <div className="mt-10 flex w-full flex-col space-y-7">
@@ -28,24 +29,39 @@ export default function RequiredInfo({ onSubmit }: { onSubmit: () => void }) {
           회원가입을 위한 몇 가지 정보를 입력해주세요.
         </p>
       </div>
-
       <div className="mt-8 w-full space-y-2">
-        <label className="text-body-emphasis text-gray-900">출생년도</label>
-        <p className="mt-2 text-xs text-gray-500">모임 추천을 위한 데이터로 사용돼요.</p>
+        <label className="text-base font-semibold text-gray-900">출생년도</label>
+        <p className="mt-1 text-xs text-gray-400">모임 추천을 위한 데이터로 사용돼요.</p>
         <input
-          {...register("birthYear")}
+          {...register("birthYear", {
+            validate: (value) => {
+              if (!value) return true;
+              if (!/^\d+$/.test(value)) {
+                return "숫자만 입력해주세요.";
+              }
+              const numeric = Number(value);
+              if (numeric < 1900) {
+                return "1900보다 작은 값은 입력할 수 없습니다.";
+              }
+              if (numeric > 2100) {
+                return "2100을 초과하는 값은 입력할 수 없습니다.";
+              }
+              return true;
+            },
+          })}
           inputMode="numeric"
           pattern="[0-9]*"
           maxLength={4}
           placeholder="예: 1998"
           className="mt-2 w-full rounded-2xl border border-gray-300 px-4 py-4 text-sm text-gray-900 outline-none focus:border-gray-900"
         />
+        {birthYearError ? <p className="mt-2 text-xs text-red-500">{birthYearError}</p> : null}
       </div>
 
       <div className="mt-3">
         <div>
-          <span className="text-body-emphasis text-gray-900">성별</span>
-          <p className="mt-2 text-xs text-gray-500">모임 추천을 위한 데이터로 사용돼요.</p>
+          <span className="text-base font-semibold text-gray-900">성별</span>
+          <p className="mt-1 text-xs text-gray-400">모임 추천을 위한 데이터로 사용돼요.</p>
         </div>
         <div className="mt-4 flex items-center gap-10">
           {genderOptions.map((option) => {
@@ -74,8 +90,8 @@ export default function RequiredInfo({ onSubmit }: { onSubmit: () => void }) {
 
       <div className="mt-5">
         <div>
-          <span className="text-body-emphasis text-gray-900">알림 수신 동의</span>
-          <p className="mt-2 text-xs text-gray-500">모임 소식과 추천 알림을 받을 수 있어요.</p>
+          <span className="text-base font-semibold text-gray-900">알림 수신 동의</span>
+          <p className="mt-1 text-xs text-gray-400">모임 소식과 추천 알림을 받을 수 있어요.</p>
         </div>
         <div className="mt-4 flex items-center gap-10">
           {consentOptions.map((option) => {

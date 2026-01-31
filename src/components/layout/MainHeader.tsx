@@ -2,8 +2,20 @@
 
 import Link from "next/link";
 import { BellIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { useQuery } from "@tanstack/react-query";
+import { apiFetch } from "@/lib/api/apiFetch";
+
+type UnreadResponse = {
+  hasUnread: boolean;
+};
 
 export default function MainHeader({ hasUnread = false }: { hasUnread: boolean }) {
+  const { data } = useQuery<UnreadResponse>({
+    queryKey: ["notificationsUnread"],
+    queryFn: () => apiFetch<UnreadResponse>("/notifications/unread", {}),
+    staleTime: 1000 * 30,
+  });
+  const resolvedHasUnread = data?.hasUnread ?? hasUnread;
   return (
     <header className="flex items-center justify-between px-6 py-5">
       <Link href="/" className="text-lg font-bold text-gray-900" aria-label="홈으로">
@@ -23,7 +35,7 @@ export default function MainHeader({ hasUnread = false }: { hasUnread: boolean }
           aria-label="알림"
         >
           <BellIcon className="h-6 w-6 stroke-[2]" aria-hidden="true" />
-          {hasUnread ? (
+          {resolvedHasUnread ? (
             <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-primary-orange" />
           ) : null}
         </Link>

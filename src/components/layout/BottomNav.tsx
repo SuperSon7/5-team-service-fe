@@ -12,10 +12,10 @@ import {
 import { usePathname, useSearchParams } from "next/navigation";
 
 const navItems = [
-  { label: "관심 모임", href: "/coming-soon?tab=interest", Icon: BookmarkIcon },
+  //{ label: "관심 모임", href: "/coming-soon?tab=interest", Icon: BookmarkIcon },
   { label: "나의 모임", href: "/my-meeting", Icon: BookOpenIcon },
   { label: "홈", href: "/", Icon: HomeIcon },
-  { label: "채팅 토론", href: "/coming-soon?tab=chat", Icon: ChatBubbleLeftEllipsisIcon },
+  //{ label: "채팅 토론", href: "/coming-soon?tab=chat", Icon: ChatBubbleLeftEllipsisIcon },
   { label: "마이페이지", href: "/my", Icon: UserCircleIcon },
 ];
 
@@ -45,7 +45,7 @@ export default function BottomNav() {
           <PlusIcon className="h-6 w-6" strokeWidth={2.5} aria-hidden="true" />
         </Link>
       ) : null}
-      <div className="grid h-full grid-cols-5">
+      <div className="grid h-full grid-cols-3">
         {navItems.map((item) => {
           const isActive = isPathActive(item.href);
 
