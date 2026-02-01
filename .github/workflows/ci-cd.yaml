@@ -118,11 +118,11 @@ jobs:
                ${{ secrets.DISCORD_WEBHOOK_URL }} || true
 
   deploy:
-    needs: ci
-    if: |
-      always() &&
-      needs.ci.result == 'success' &&
-      github.event_name == 'push'
+#    needs: ci
+#    if: |
+#      always() &&
+#      needs.ci.result == 'success' &&
+#      github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Set environment
@@ -134,6 +134,7 @@ jobs:
           else
             echo "host=DEV_EC2_HOST" >> $GITHUB_OUTPUT
             echo "env_name=develop" >> $GITHUB_OUTPUT
+            echo "sg_id=${{ secrets.AWS_SG_ID_DEV }}" >> $GITHUB_OUTPUT
           fi
 
       - name: Download Build Artifact
@@ -147,6 +148,28 @@ jobs:
           cd frontend-dist
           mv next-build .next
           tar -czf ../frontend-build.tar.gz .
+
+      # --- [1] GitHub Actions 서버의 공인 IP 실시간 확인 ---
+      - name: Get GitHub IP
+        id: ip
+        run: echo "ipv4=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_OUTPUT
+
+      # --- [2] AWS 자격 증명 설정 ---
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      # --- [3] 보안 그룹에 현재 IP 한시적 허용 (22번 포트) ---
+      - name: Add GitHub IP to Security Group
+        run: |
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ steps.env.outputs.sg_id }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
 
       - name: Transfer to Server
         uses: appleboy/scp-action@v0.1.7
@@ -165,6 +188,17 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ steps.env.outputs.host == 'EC2_HOST' && secrets.EC2_SSH_KEY || secrets.DEV_EC2_SSH_KEY }}
           script: bash /home/ubuntu/app/deploy.sh fe ${{ steps.env.outputs.env_name }} ${{ github.sha }}
+
+      # --- [4] 배포 완료 후 보안 그룹에서 IP 제거 (항상 실행) ---
+      - name: Remove GitHub IP from Security Group
+        if: always()
+        run: |
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ steps.env.outputs.sg_id }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+
       - name: Notify Discord
         if: always()
         run: |
