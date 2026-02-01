@@ -128,12 +128,17 @@ jobs:
       - name: Set environment
         id: env
         run: |
+          set -euo pipefail
+
           if [ "${{ github.ref }}" == "refs/heads/main" ]; then
-            echo "host=EC2_HOST" >> $GITHUB_OUTPUT
             echo "env_name=prod" >> $GITHUB_OUTPUT
+            echo "deploy_target=lightsail" >> $GITHUB_OUTPUT
+            echo "ssh_host=${{ secrets.PROD_LIGHTSAIL_HOST }}" >> $GITHUB_OUTPUT
+            echo "lightsail_instance_name=${{ secrets.PROD_LIGHTSAIL_INSTANCE_NAME }}" >> $GITHUB_OUTPUT
           else
-            echo "host=DEV_EC2_HOST" >> $GITHUB_OUTPUT
             echo "env_name=develop" >> $GITHUB_OUTPUT
+            echo "deploy_target=ec2" >> $GITHUB_OUTPUT
+            echo "ssh_host=${{ secrets.DEV_EC2_HOST }}" >> $GITHUB_OUTPUT
             echo "sg_id=${{ secrets.AWS_SG_ID_DEV }}" >> $GITHUB_OUTPUT
           fi
 
@@ -152,7 +157,10 @@ jobs:
       # --- [1] GitHub Actions 서버의 공인 IP 실시간 확인 ---
       - name: Get GitHub IP
         id: ip
-        run: echo "ipv4=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_OUTPUT
+        run: |
+          set -euo pipefail
+          IPV4="$(curl -s https://checkip.amazonaws.com | tr -d '\n')"
+          echo "ipv4=$IPV4" >> $GITHUB_OUTPUT
 
       # --- [2] AWS 자격 증명 설정 ---
       - name: Configure AWS credentials
@@ -162,21 +170,30 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      # --- [3] 보안 그룹에 현재 IP 한시적 허용 (22번 포트) ---
-      - name: Add GitHub IP to Security Group
+      # --- [3-a] DEV(EC2): 보안 그룹 22번 포트 한시적 허용 ---
+      - name: Add GitHub IP to EC2 Security Group (SSH)
+        if: ${{ steps.env.outputs.deploy_target == 'ec2' }}
         run: |
           aws ec2 authorize-security-group-ingress \
             --group-id ${{ steps.env.outputs.sg_id }} \
             --protocol tcp \
             --port 22 \
-            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32 || true
+
+      # --- [3-b] PROD(Lightsail): 22번 포트 한시적 허용 ---
+      - name: Allow GitHub IP on Lightsail (SSH)
+        if: ${{ steps.env.outputs.deploy_target == 'lightsail' }}
+        run: |
+          aws lightsail open-instance-public-ports \
+            --instance-name ${{ steps.env.outputs.lightsail_instance_name }} \
+            --port-info fromPort=22,toPort=22,protocol=tcp,cidrs=${{ steps.ip.outputs.ipv4 }}/32 || true
 
       - name: Transfer to Server
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ steps.env.outputs.host == 'EC2_HOST' && secrets.EC2_HOST || secrets.DEV_EC2_HOST }}
+          host: ${{ steps.env.outputs.ssh_host }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ steps.env.outputs.host == 'EC2_HOST' && secrets.EC2_SSH_KEY || secrets.DEV_EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           source: "frontend-build.tar.gz"
           target: "/home/ubuntu/app/artifacts/fe"
           overwrite: true
@@ -184,20 +201,28 @@ jobs:
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ steps.env.outputs.host == 'EC2_HOST' && secrets.EC2_HOST || secrets.DEV_EC2_HOST }}
+          host: ${{ steps.env.outputs.ssh_host }}
           username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ steps.env.outputs.host == 'EC2_HOST' && secrets.EC2_SSH_KEY || secrets.DEV_EC2_SSH_KEY }}
+          key: ${{ secrets.EC2_SSH_KEY }}
           script: bash /home/ubuntu/app/deploy.sh fe ${{ steps.env.outputs.env_name }} ${{ github.sha }}
 
-      # --- [4] 배포 완료 후 보안 그룹에서 IP 제거 (항상 실행) ---
-      - name: Remove GitHub IP from Security Group
-        if: always()
+      # --- [4-a] DEV(EC2): 보안 그룹에서 IP 제거 (항상 실행) ---
+      - name: Remove GitHub IP from EC2 Security Group (SSH)
+        if: always() && steps.env.outputs.deploy_target == 'ec2'
         run: |
           aws ec2 revoke-security-group-ingress \
             --group-id ${{ steps.env.outputs.sg_id }} \
             --protocol tcp \
             --port 22 \
-            --cidr ${{ steps.ip.outputs.ipv4 }}/32
+            --cidr ${{ steps.ip.outputs.ipv4 }}/32 || true
+
+      # --- [4-b] PROD(Lightsail): IP 제거 (항상 실행) ---
+      - name: Close GitHub IP on Lightsail (SSH)
+        if: always() && steps.env.outputs.deploy_target == 'lightsail'
+        run: |
+          aws lightsail close-instance-public-ports \
+            --instance-name ${{ steps.env.outputs.lightsail_instance_name }} \
+            --port-info fromPort=22,toPort=22,protocol=tcp,cidrs=${{ steps.ip.outputs.ipv4 }}/32 || true
 
       - name: Notify Discord
         if: always()
