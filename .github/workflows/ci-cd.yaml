@@ -118,11 +118,11 @@ jobs:
                ${{ secrets.DISCORD_WEBHOOK_URL }} || true
 
   deploy:
-#    needs: ci
-#    if: |
-#      always() &&
-#      needs.ci.result == 'success' &&
-#      github.event_name == 'push'
+    needs: ci
+    if: |
+      always() &&
+      needs.ci.result == 'success' &&
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Set environment
